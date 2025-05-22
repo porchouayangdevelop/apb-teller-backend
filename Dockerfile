@@ -1,22 +1,34 @@
-FROM node:20-alpine
+FROM node:20-alpine as builder
 WORKDIR /app/backend
 
 RUN apk add --no-cache gettext
-
 RUN npm install pnpm@latest -g
 
 COPY *.json ./
-
 COPY pnpm-lock.yaml ./
 
-RUN npm install dotenv
+RUN pnpm install dotenv
+RUN pnpm i --frozen-lockfile --prod
 
-RUN pnpm install
+
+FROM node:20-alpine as production
+RUN apk add --no-cache gettext
+RUN npm install pnpm@latest -g
+
+COPY --from=builder /app/backend/node_modules ./node_modules
+COPY --from=builder /app/backend/package*.json ./
+COPY --from=builder /app/backend/pnpm-lock.yaml ./
+
+COPY app/ ./app/
+COPY certs/ ./certs/
+COPY server.js ./
+
+# RUN pnpm install
 
 # env
 ENV NODE_ENV=production
 
-COPY . .
+# COPY . .
 
 EXPOSE 5000
 EXPOSE 443

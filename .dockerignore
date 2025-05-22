@@ -1,1 +1,28 @@
+# Current content
 /node_modules
+
+# Add these exclusions for production
+.env
+.env.sit
+.env.prod
+.gitignore
+docker-compose.yaml
+Dockerfile
+generate-self-signed-certs.sh
+*.md
+README.md
+.git
+.github
+*.log
+logs/
+coverage/
+.nyc_output/
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
