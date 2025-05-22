@@ -30,6 +30,7 @@ const initialConnection = async () => {
   }
   catch (error) {
     console.error('Error connecting to the database:', error);
+    throw error;
   }
   finally {
     if (connection) connection.release();

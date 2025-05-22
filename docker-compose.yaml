@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: teller-api
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - HTTPS_PORT=8443
+      - HOST= 0.0.0.0
+    volumes:
+      - .:/app
+      - ./certs:/app/certs
+      - ./logs:/app/logs
+    ports:
+      - "5000:5000" #http
+      - "443:443" #https
+    networks:
+      - app-network
+networks:
+  app-network:
+    driver: bridge

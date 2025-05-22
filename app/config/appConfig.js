@@ -1,11 +1,13 @@
 import { config } from "dotenv";
 config({
-  path: process.env.NODE_ENV === "development" ? ".env" : ".env.prod"
+  path: process.env.NODE_ENV === "production" ? ".env" :
+    process.env.NODE_ENV === 'development' ? ".env" : undefined
 });
 
 export const AppConfig = {
   PORT: process.env.PORT,
   HOST: process.env.HOST,
+  HTTPS_PORT: process.env.HTTPS_PORT,
 
   DB_HOST: process.env.DB_HOST,
   DB_USER: process.env.DB_USER,

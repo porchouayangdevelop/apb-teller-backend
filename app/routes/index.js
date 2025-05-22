@@ -19,4 +19,7 @@ export default async function (fastify, opts) {
   fastify.register(import("./teller.routes.js"), {
     prefix: "/tellers",
   });
+  fastify.register(import("./upload.routes.js"), {
+    prefix: "/uploads",
+  });
 }
