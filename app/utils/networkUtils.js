@@ -1,91 +1,51 @@
 import os from 'os';
 import { AppConfig } from '../config/appConfig.js';
 
+export const getOptimalHost = (options = {}) => {
+  const {
+    preferIPv4 = true,
+    excludePattern = ['docker', 'veth', 'br-', 'lo'],
+    preferPattern = ['eth', 'en', 'em', 'eno', 'wlan', 'ens'],
+  } = options;
 
-export const getPrimaryIP = () => {
   const interfaces = os.networkInterfaces();
-  for (const ifaceName in interfaces) {
-    const iface = interfaces[ifaceName];
-    if (iface) {
-      for (const alias of iface) {
-        if (alias.family === 'IPv4' && !alias.internal) {
-          return alias.address;
-        }
-      }
-    }
-  }
-  return '127.0.0.1';
-};
-
-
-export const getOptimalHost = () => {
-  const networkIface = os.networkInterfaces();
   const candidates = [];
 
-  for (const ifaceName in networkIface) {
-    const iface = networkIface[ifaceName];
-    if (iface) {
-      for (const alias of iface) {
-        if (alias.family === 'IPv4' && !alias.internal) {
-          candidates.push({
-            address: alias.address,
-            ifaceName: ifaceName,
-            priority: getPriority(ifaceName, alias.address),
-          });
+  for (const ifaceName in interfaces) {
+    if (excludePattern.some(pattern => ifaceName.includes(pattern))) continue; // Skip docker interfaces
+
+    const iface = interfaces[ifaceName];
+    if (!iface) continue;
+
+    for (const addr of iface) {
+      if (addr.internal) continue;
+
+      let priority = 0;
+      if (preferIPv4 && addr.family === 'IPv4') priority += 100;
+
+      for (let i = 0; i < preferPattern.length; i++) {
+        if (ifaceName.includes(preferPattern[i])) {
+          priority += 50 - (i * 5);
+          break;
         }
       }
+
+      if (addr.address.startsWith('10.')) priority += 20;
+      if (addr.address.startsWith('172..')) priority += 15;
+      if (addr.address.startsWith('192.168.')) priority += 10;
+
+      candidates.push({
+        address: addr.address,
+        family: addr.family,
+        interface: ifaceName,
+        priority: priority,
+      });
     }
   }
   candidates.sort((a, b) => b.priority - a.priority);
-  return candidates.length > 0 ? candidates[0].address : '127.0.0.1';
+
+  return candidates.length > 0 ? candidates[0].address : '10.2.6.142';
 }
-
-const getPriority = (ifaceName, address) => {
-  let priority = 0;
-
-  if (ifaceName.includes('eth') || ifaceName.includes('en')) priority += 10;
-  if (ifaceName.includes('wlan') || ifaceName.includes('wifi')) priority += 5;
-
-  if (address.startsWith('192.168.')) priority += 8;
-  if (address.startsWith('10.')) priority += 7;
-  if (address.startsWith('172.')) priority += 6;
-
-  return priority;
-}
-
-
-export const getServerIPs = () => {
-  const networkInterfaces = os.networkInterfaces();
-  const ipAddresses = {
-    ipv4: [],
-    ipv6: [],
-    primary: null,
-  };
-
-  for (const interfaceName in networkInterfaces) {
-    const interfaces = networkInterfaces[interfaceName];
-    for (const iface of interfaces) {
-      // Skip internal addresses
-      if (!iface.internal) {
-        if (iface.family === 'IPv4') {
-          ipAddresses.ipv4.push(iface.address);
-          if (!ipAddresses.primary) {
-            ipAddresses.primary = iface.address;
-          }
-        } else if (iface.family === 'IPv6' || iface.family === 6) {
-          ipAddresses.ipv6.push(iface.address);
-        }
-      }
-    }
-  }
-
-  if (!ipAddresses.primary) {
-    ipAddresses.primary = '127.0.0.1';
-  }
-
-  return ipAddresses;
-};
-
 
 export const getAllNetworkAddresses = () => {
   const networkInterfaces = os.networkInterfaces();
@@ -117,6 +77,16 @@ export const getAllNetworkAddresses = () => {
   return addresses;
 };
 
+
+export const getServerIPs = () => {
+  const addresses = getAllNetworkAddresses();
+  return {
+    primary: getOptimalHost(),
+    ipv4: addresses.ipv4,
+    ipv6: addresses.ipv6,
+  }
+};
+
 export const getPrimaryIPv4 = () => {
   const addresses = getAllNetworkAddresses();
   return addresses.ipv4.length > 0 ? addresses.ipv4[0] : '127.0.0.1';
@@ -127,7 +97,6 @@ export const getPrimaryIPv6 = () => {
   return addresses.ipv6.length > 0 ? addresses.ipv6[0] : '::1';
 }
 
-
 export const getSwaggerHostConfig = (options = {}) => {
   const {
     useHttps = true,
@@ -137,7 +106,7 @@ export const getSwaggerHostConfig = (options = {}) => {
   } = options;
 
   const addresses = getAllNetworkAddresses();
-  const primaryIP = preferredIP || getPrimaryIPv4();
+  const primaryIP = preferredIP || getOptimalHost();
 
   const port = useHttps ? httpsPort : httpPort;
   const protocol = useHttps ? 'https' : 'http';
@@ -152,5 +121,5 @@ export const getSwaggerHostConfig = (options = {}) => {
     alternativeHosts: alternativeHosts,
     description: `API is accessible at : ${alternativeHosts.join(', ')}`
   };
-  
+
 }

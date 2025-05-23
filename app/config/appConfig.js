@@ -4,7 +4,7 @@ config({
     process.env.NODE_ENV === 'development' ? ".env" : undefined
 });
 
-import { getPrimaryIP, getOptimalHost } from "../utils/networkUtils.js";
+import {getOptimalHost } from "../utils/networkUtils.js";
 
 export const AppConfig = {
   PORT: process.env.PORT,

@@ -101,7 +101,7 @@ const buildApp = async (options = {}) => {
     useHttps: options.useHttps,
     httpsPort: httpsPort,
     httpPort: httpPort,
-    preferredIP: options.swaggerHost,
+    preferredIP: options.swaggerHost || AppConfig.HOST,
   });
 
   app.register(fastifySwagger, {
@@ -115,8 +115,8 @@ const buildApp = async (options = {}) => {
       host: swaggerOptions.host,
       // schemes: ["http","https"],
       // schemes: process.env.NODE_ENV === 'production' ? ["https", "http"] : ["http"],
-      // consumes: ["application/json"],
       schemes: swaggerOptions.schemes,
+      consumes: ["application/json"],
       produces: ["application/json"],
     },
   });
