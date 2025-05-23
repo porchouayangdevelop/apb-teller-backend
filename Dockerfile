@@ -1,7 +1,7 @@
 FROM node:20-alpine as builder
 WORKDIR /app/backend
 
-RUN apk add --no-cache gettext
+RUN apk add --no-cache gettext iproute2
 RUN npm install pnpm@latest -g
 
 COPY *.json ./
@@ -12,7 +12,7 @@ RUN pnpm i --frozen-lockfile --prod
 
 
 FROM node:20-alpine as production
-RUN apk add --no-cache gettext
+RUN apk add --no-cache gettext iproute2
 RUN npm install pnpm@latest -g
 
 COPY --from=builder /app/backend/node_modules ./node_modules

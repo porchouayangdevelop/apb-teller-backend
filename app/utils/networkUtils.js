@@ -151,6 +151,6 @@ export const getSwaggerHostConfig = (options = {}) => {
     schemes: schemes,
     alternativeHosts: alternativeHosts,
     description: `API is accessible at : ${alternativeHosts.join(', ')}`
-  }
-
+  };
+  
 }

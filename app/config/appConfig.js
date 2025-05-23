@@ -8,8 +8,7 @@ import { getPrimaryIP, getOptimalHost } from "../utils/networkUtils.js";
 
 export const AppConfig = {
   PORT: process.env.PORT,
-  // HOST: process.env.HOST === '0.0.0.0' ? getPrimaryIP() : (process.env.HOST || getPrimaryIP()),
-  HOST: process.env.USE_DOCKER_HOST === 'true' ? getOptimalHost() : (getPrimaryIP()),
+  HOST: process.env.HOST_IP || (process.env.USE_DOCKER_HOST === 'true' ? getOptimalHost() : getOptimalHost()),
   HTTPS_PORT: process.env.HTTPS_PORT,
 
   DB_HOST: process.env.DB_HOST,
